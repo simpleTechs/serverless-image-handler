@@ -48,8 +48,12 @@ class ImageRequest {
         try {
             const originalImage = await request;
             this.ContentType = originalImage.ContentType;
-            this.Expires = new Date(originalImage.Expires).toUTCString();
-            this.LastModified = new Date(originalImage.LastModified).toUTCString();
+            if(originalImage.Expires) {
+                this.Expires = new Date(originalImage.Expires).toUTCString();
+            }
+            if(originalImage.LastModified) {
+                this.LastModified = new Date(originalImage.LastModified).toUTCString();
+            }
             return Promise.resolve(originalImage.Body);
         }
         catch(err) {
@@ -203,7 +207,7 @@ class ImageRequest {
             return {}
         }
         const encoded = event.queryStringParameters && event.queryStringParameters.edits
-        const toBuffer = new Buffer(encoded, 'base64');
+        const toBuffer = new Buffer.from(encoded, 'base64');
         try {
             return JSON.parse(toBuffer.toString('utf8'));
         } catch (e) {
@@ -224,7 +228,7 @@ class ImageRequest {
         if (path !== undefined) {
             const splitPath = path.split("/");
             const encoded = splitPath[splitPath.length - 1];
-            const toBuffer = new Buffer(encoded, 'base64');
+            const toBuffer = new Buffer.from(encoded, 'base64');
             try {
                 return JSON.parse(toBuffer.toString('ascii'));
             } catch (e) {
