@@ -24,6 +24,7 @@ class ImageRequest {
         try {
             this.requestType = this.parseRequestType(event);
             this.bucket = this.parseImageBucket(event, this.requestType);
+
             this.key = this.parseImageKey(event, this.requestType);
             this.edits = this.parseImageEdits(event, this.requestType);
             this.originalImage = await this.getOriginalImage(this.bucket, this.key)
@@ -84,7 +85,7 @@ class ImageRequest {
                 const sourceBuckets = this.getAllowedSourceBuckets();
                 return sourceBuckets[0];
             }
-        } else if (requestType === "Thumbor" || requestType === "Custom") {
+        } else if (requestType === "Thumbor" || requestType === "Custom" || requestType === "QueryParam") {
             // Use the default image source bucket env var
             const sourceBuckets = this.getAllowedSourceBuckets();
             return sourceBuckets[0];
@@ -103,7 +104,10 @@ class ImageRequest {
      * @param {String} requestType - Image handler request type.
      */
     parseImageEdits(event, requestType) {
-        if (requestType === "Default") {
+        if(requestType === 'QueryParam') {
+            const decoded = this.decodeQueryParamRequest(event);
+            return decoded;
+        } else if (requestType === "Default") {
             const decoded = this.decodeRequest(event);
             return decoded.edits;
         } else if (requestType === "Thumbor") {
@@ -131,7 +135,9 @@ class ImageRequest {
      * @param {String} requestType - Type, either "Default", "Thumbor", or "Custom".
      */
     parseImageKey(event, requestType) {
-        if (requestType === "Default") {
+        if(requestType === 'QueryParam') {
+            return (event.path || '').substr(1)
+        } else if (requestType === "Default") {
             // Decode the image request and return the image key
             const decoded = this.decodeRequest(event);
             return decoded.key;
@@ -160,8 +166,10 @@ class ImageRequest {
         const path = event["path"];
         // ----
         const matchDefault = new RegExp(/^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/);
+        const matchQueryParam = /(\.jpe?g|\.png|\.webp|\.tiff|\.gif)$/i;
         const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(.+jpg|.+png|.+webp|.+tiff|.+jpeg)$/);
         const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg)/);
+
         const definedEnvironmentVariables = (
             (process.env.REWRITE_MATCH_PATTERN !== "") && 
             (process.env.REWRITE_SUBSTITUTION !== "") && 
@@ -169,7 +177,9 @@ class ImageRequest {
             (process.env.REWRITE_SUBSTITUTION !== undefined)
         );
         // ----
-        if (matchDefault.test(path)) {  // use sharp
+        if(matchQueryParam.test(path) || event.queryStringParameters && event.queryStringParameters.edits){
+            return 'QueryParam';
+        } else if (matchDefault.test(path)) {  // use sharp
             return 'Default';
         } else if (matchCustom.test(path) && definedEnvironmentVariables) {  // use rewrite function then thumbor mappings
             return 'Custom';
@@ -183,7 +193,24 @@ class ImageRequest {
             };
         }
     }
-
+    decodeQueryParamRequest(event) {
+        // careful: This requires a whitelist within cloudfront
+        const edits = event.queryStringParameters && event.queryStringParameters.edits
+        if(!edits) {
+            return {}
+        }
+        const encoded = event.queryStringParameters && event.queryStringParameters.edits
+        const toBuffer = new Buffer(encoded, 'base64');
+        try {
+            return JSON.parse(toBuffer.toString('utf8'));
+        } catch (e) {
+            throw ({
+                status: 400,
+                code: 'DecodeRequest::CannotDecodeRequest',
+                message: 'The image request you provided could not be decoded. Please check that your request is base64 encoded properly and refer to the documentation for additional guidance.'
+            });
+        }
+    }
     /**
      * Decodes the base64-encoded image request path associated with default
      * image requests. Provides error handling for invalid or undefined path values.

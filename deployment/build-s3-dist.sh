@@ -27,8 +27,9 @@ echo "--------------------------------------------------------------------------
 echo "Package the image-handler code"
 echo "------------------------------------------------------------------------------"
 cd image-handler
-npm install 
-npm run build 
+# cross compile to linux in order to run sharp on lambda!
+docker run -v "$PWD":/var/task lambci/lambda:build-nodejs10.x npm install --arch=x64 --platform=linux --target=10.17.0
+docker run -v "$PWD":/var/task lambci/lambda:build-nodejs10.x npm run build --arch=x64 --platform=linux --target=10.17.0
 cp dist/image-handler.zip ../../deployment/dist/image-handler.zip 
 
 echo "------------------------------------------------------------------------------"
