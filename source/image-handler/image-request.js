@@ -44,6 +44,7 @@ class ImageRequest {
         const S3 = require('aws-sdk/clients/s3');
         const s3 = new S3();
         const imageLocation = { Bucket: bucket, Key: key };
+        
         const request = s3.getObject(imageLocation).promise();
         try {
             const originalImage = await request;
@@ -55,8 +56,8 @@ class ImageRequest {
                 this.LastModified = new Date(originalImage.LastModified).toUTCString();
             }
             return Promise.resolve(originalImage.Body);
-        }
-        catch(err) {
+        } catch(err) {
+            console.warn('Could not get image from: ' + JSON.stringify(imageLocation));
             return Promise.reject({
                 status: ("NoSuchKey" == err.code) ? 404 : 500,
                 code: err.code,
@@ -143,7 +144,7 @@ class ImageRequest {
      */
     parseImageKey(event, requestType) {
         if(requestType === 'QueryParam') {
-            return (event.path || '').substr(1)
+            return decodeURIComponent(event.path || '').substr(1)
         } else if (requestType === "Default") {
             // Decode the image request and return the image key
             const decoded = this.decodeRequest(event);
