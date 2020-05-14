@@ -1,3 +1,4 @@
+// @ts-check
 /*********************************************************************************************************************
  *  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           *
  *                                                                                                                    *
@@ -28,6 +29,26 @@ class ImageRequest {
             this.key = this.parseImageKey(event, this.requestType);
             this.edits = this.parseImageEdits(event, this.requestType);
             this.originalImage = await this.getOriginalImage(this.bucket, this.key)
+            console.log('got content type from original image: '+ this.ContentType)
+            switch(this.ContentType || '') {
+                case 'image/jpg':
+                case 'image/jpeg': {
+                    this.outputFormat = 'jpeg'
+                    break;
+                }
+                case 'image/png': {
+                    this.outputFormat = 'png'
+                    break;
+                }
+                case 'image/webp': {
+                    this.outputFormat = 'webp'
+                    break;
+                }
+                case 'image/gif': {
+                    this.outputFormat = 'gif'
+                    break;
+                }
+            }
             return Promise.resolve(this);
         } catch (err) {
             return Promise.reject(err);
@@ -185,7 +206,7 @@ class ImageRequest {
             (process.env.REWRITE_SUBSTITUTION !== undefined)
         );
         // ----
-        if(matchQueryParam.test(path) || event.queryStringParameters && event.queryStringParameters.edits){
+        if(matchQueryParam.test(path) || (event.queryStringParameters && event.queryStringParameters.edits)){
             return 'QueryParam';
         } else if (matchDefault.test(path)) {  // use sharp
             return 'Default';

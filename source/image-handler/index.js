@@ -10,21 +10,20 @@
  *  OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions    *
  *  and limitations under the License.                                                                                *
  *********************************************************************************************************************/
-
 const ImageRequest = require('./image-request.js');
 const ImageHandler = require('./image-handler.js');
 
 exports.handler = async (event) => {
-    console.log(event);
+    console.log('incoming image request', event);
     const imageRequest = new ImageRequest();
     const imageHandler = new ImageHandler();
     try {
         const request = await imageRequest.setup(event);
-        console.log(request);
+        console.log('request after setup', request);
         const processedRequest = await imageHandler.process(request);
         const headers = getResponseHeaders();
-        headers["Content-Type"] = request.ContentType;
-        headers["Expires"] = request.Expires;
+        headers["Content-Type"] = imageRequest.ContentType || request.ContentType;
+        headers["Cache-Control"] = process.env.CACHE_CONTROL_HEADER || 'max-age=604800' // default 1 week
         headers["Last-Modified"] = request.LastModified;
         const response = {
             "statusCode": 200,

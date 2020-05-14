@@ -1,3 +1,4 @@
+// @ts-check
 /********************************************************************************************************************* 
  *  Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.                                           * 
  *                                                                                                                    * 
@@ -26,7 +27,10 @@ class ImageHandler {
         if (edits !== undefined) { 
             const modifiedImage = await this.applyEdits(originalImage, edits); 
             if (request.outputFormat !== undefined) {  
-                await modifiedImage.toFormat(request.outputFormat);  
+                await modifiedImage.toFormat(request.outputFormat, {
+                    progressive: true,
+                    // quality: 80 -> default for jpeg
+                });  
             }  
             const bufferImage = await modifiedImage.toBuffer();  
             return bufferImage.toString('base64'); 
