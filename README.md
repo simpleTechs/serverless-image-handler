@@ -1,12 +1,3 @@
-**_Important Notice:_**
-Due to a [change in the AWS Lambda execution environment](https://aws.amazon.com/blogs/compute/upcoming-updates-to-the-aws-lambda-execution-environment/), Serverless Image Handler v3 deployments are functionally broken. To address the issue we have released [minor version update v3.1.1](https://solutions-reference.s3.amazonaws.com/serverless-image-handler/v3.1.1/serverless-image-handler.template). We recommend all users of v3 to run cloudformation stack update with v3.1.1. Additionally, we suggest you to look at v4 of the solution and migrate to v4 if it addresses all of your use cases. 
-
-# AWS Serverless Image Handler Lambda wrapper for SharpJS
-A solution to dynamically handle images on the fly, utilizing Sharp (https://sharp.pixelplumbing.com/en/stable/).
-Published version, additional details and documentation are available here: https://aws.amazon.com/solutions/serverless-image-handler/
-
-_Note:_ it is recommend to build the application binary on Amazon Linux.
-
 ## Running unit tests for customization
 * Clone the repository, then make the desired code changes
 * Next, run unit tests to make sure added customization passes the tests
@@ -61,3 +52,16 @@ Licensed under the Amazon Software License (the "License"). You may not use this
     http://aws.amazon.com/asl/
 
 or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+# Trying to Debug Local Development (does not work yet)
+* install docker
+* install AWS CLI and configure the credentials
+* [Install aws-cli sam](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+* `sam build --use-container && sam local start-api --log-file ./local.log` (use-container is required for using the npm module sharp within a docker container). Rerun whenever you change the template.yaml
+* run `tail -f local.log` in parallel
+* changes will not be reflected automatically in the source fold, but in the `.aws-sam` folder, because we have to use sam build
+
+* in order to debug, use
+
+=> once `require('sharp')` is executed, it crashes without any error. Probably because if a wrongfully installed compiled version of sharp -> leading to a timeout!
+

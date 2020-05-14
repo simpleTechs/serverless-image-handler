@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Sample SAM Template for sam-app
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 10
+
+Resources:
+  ImageHandlerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: source/image-handler/
+      Handler: index.handler # index is the file, handler is the part of module.exports.THIS
+      Runtime: nodejs10.x
+      Environment:
+        Variables:
+          CORS_ENABLED: Yes
+          CORS_ORIGIN: '*'
+          REWRITE_MATCH_PATTERN: ''
+          REWRITE_SUBSTITUTION: ''
+          # SOURCE_BUCKETS: CONFIGURE ME
+
+
+      Events:
+        ImageHandlerRequestRoot:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /index
+            Method: GET
+        ImageHandlerRequestTest:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /test
+            Method: GET
+        ImageHandlerRequest:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /{proxy+}
+            Method: GET
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ImageHandlerApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    # Value: "https://8j8cemgtu9.execute-api.eu-north-1.amazonaws.com/image/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  ImageHandlerFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt ImageHandlerFunction.Arn
+  ImageHandlerFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn

@@ -1,5 +1,7 @@
 # System Files
 **/.DS_Store
+*.log
+.aws-sam/
 
 node_modules/
 dist/
