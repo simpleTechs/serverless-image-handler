@@ -30,6 +30,7 @@ class ImageRequest {
             this.edits = this.parseImageEdits(event, this.requestType);
             this.originalImage = await this.getOriginalImage(this.bucket, this.key)
             console.log('got content type from original image: '+ this.ContentType)
+            
             switch(this.ContentType || '') {
                 case 'image/jpg':
                 case 'image/jpeg': {
@@ -48,6 +49,11 @@ class ImageRequest {
                     this.outputFormat = 'gif'
                     break;
                 }
+            }
+            // we do not accept image/* because native apps send this and will not support webp out of the box
+            if(process.env.AUTO_WEBP === 'Yes' && event.headers.Accept && event.headers.Accept.includes('image/webp')) {
+                this.outputFormat = 'webp'
+                this.ContentType = 'image/webp'
             }
             return Promise.resolve(this);
         } catch (err) {

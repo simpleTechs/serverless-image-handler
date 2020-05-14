@@ -24,6 +24,7 @@ Resources:
           REWRITE_MATCH_PATTERN: ''
           REWRITE_SUBSTITUTION: ''
           # SOURCE_BUCKETS: CONFIGURE ME
+          AUTO_WEBP: 'Yes'
 
 
       Events:

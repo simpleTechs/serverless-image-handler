@@ -28,7 +28,8 @@ class ImageHandler {
             const modifiedImage = await this.applyEdits(originalImage, edits); 
             if (request.outputFormat !== undefined) {  
                 await modifiedImage.toFormat(request.outputFormat, {
-                    progressive: true,
+                    // disabled, we rather support webp, about 2.5x takes times longer to decode, can block mobile devices
+                    // progressive: true, 
                     // quality: 80 -> default for jpeg
                 });  
             }  
