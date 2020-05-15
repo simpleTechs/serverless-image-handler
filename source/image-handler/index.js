@@ -33,7 +33,7 @@ exports.handler = async (event) => {
         }
         return response;
     } catch (err) {
-        console.log(err);
+        console.log('caught error in request', err);
         const response = {
             "statusCode": err.status,
             "headers" : getResponseHeaders(true),

@@ -78,6 +78,11 @@ class ImageHandler {
                 image[key](value);  
             } else {
                 console.log('unsupported operation: ' + key)
+                throw {
+                    status: 400,
+                    code: 'InvalidOperation',
+                    message: 'Invalid Operation: ' + key
+                }
             }
         }  
         // Return the modified image  
