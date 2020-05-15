@@ -30,7 +30,7 @@ class ImageHandler {
                 await modifiedImage.toFormat(request.outputFormat, {
                     // disabled, we rather support webp, about 2.5x takes times longer to decode, can block mobile devices
                     // progressive: true, 
-                    // quality: 80 -> default for jpeg
+                    quality: edits.quality > 0 ? edits.quality : 80 // -> default for jpeg
                 });  
             }  
             const bufferImage = await modifiedImage.toBuffer();  
@@ -72,9 +72,13 @@ class ImageHandler {
                         message: 'The padding value you provided exceeds the boundaries of the original image. Please try choosing a smaller value or applying padding via Sharp for greater specificity.'
                     });
                 }
-            } else {  
+            } else if(key == 'quality') {
+                // nothing to do, this is used in the output function
+            } else if(typeof image[key] === 'function') {
                 image[key](value);  
-            }  
+            } else {
+                console.log('unsupported operation: ' + key)
+            }
         }  
         // Return the modified image  
         return image;  
